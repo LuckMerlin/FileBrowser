@@ -1,11 +1,12 @@
 
  
 import pyinotify
+from database.Database import Database
 import os
 
 class OnFileModify(pyinotify.ProcessEvent):
     EVENT_DELETE,EVENT_LOAD,EVENT_MOVE,EVENT_MOVE_CHILD=2017,2018,2019,2020
-
+    
     def process_default(self,event):
         file=event.pathname if event!=None else None
         if None==file:
@@ -22,7 +23,7 @@ class OnFileModify(pyinotify.ProcessEvent):
             self.notifyFileModifyEvent(self.EVENT_LOAD,file)
             # print("Create&&&&&&&&&&&&&&7 ",file)
         elif mask&pyinotify.IN_MOVED_FROM or mask&pyinotify.IN_DELETE:
-            print("dd ",mask&pyinotify.IN_MOVE_SELF,mask&pyinotify.IN_DELETE)
+            # print("dd ",mask&pyinotify.IN_MOVE_SELF,mask&pyinotify.IN_DELETE)
             self.deleteFile(file)
             if not event.dir:#If file or link,need to notify delete event 
                 self.notifyFileModifyEvent(self.EVENT_DELETE,file)
@@ -45,16 +46,16 @@ class OnFileModify(pyinotify.ProcessEvent):
                 self.loadFile(path,src)#Must load file before exec delete for save performs
                 self.deleteFile(src)
             elif os.path.isdir(path):
-                for child in os.listdir(path):
-                    print("xinzeng move ,",child)
-                 
+                # for child in os.listdir(path):
+                print("xinzeng move ,",child)
+                    
             else:
                 print("Unknow type file moved ",src,path)        
 
     def notifyFileModifyEvent(self,eventId,src,target=None):
         pass    
 
-class FileMonitor:  
+class FileMonitor(Database):  
     def startObserver(self,path=None):
         if path==None:
             print("Can't start file modify observer is NONE",path)
