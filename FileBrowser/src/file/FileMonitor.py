@@ -12,7 +12,7 @@ class OnFileModify(pyinotify.ProcessEvent):
         if None==file:
             print("Invalid file modified ",event)
             return
-        print(event)
+       # print(event)
         mask=event.mask
         if mask&pyinotify.IN_CLOSE_WRITE:
             self.loadFile(file)
@@ -56,8 +56,9 @@ class OnFileModify(pyinotify.ProcessEvent):
         pass    
 
 class FileMonitor(Database):  
+
     def startObserver(self,path=None):
-        if path==None:.
+        if path==None:
             print("Can't start file modify observer is NONE",path)
             return None
         elif not os.path.exists(path):
@@ -70,6 +71,10 @@ class FileMonitor(Database):
         notifier=pyinotify.Notifier(manager,modifyHandler) 
         manager.add_watch(path,mask,modifyHandler,True,True)
         print("Started file modify observer ",path)
+        #test
+        super().deleteOnDatabase("/home/LuckMerlin/Desktop/Test")
+        super().insertOnDatabase("/home/LuckMerlin/Desktop/Test")
+        super().moveOnDatabase("/home/LuckMerlin/Desktop/Test","/home")
         notifier.loop()
 
     def stopObserver(self):

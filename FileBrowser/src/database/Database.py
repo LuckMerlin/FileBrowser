@@ -1,11 +1,6 @@
 
-class Database:
+from database.MySql import MySql
 
-	def insert(self):
-		pass
+class Database(MySql):
+    pass
 
-	def delete(self):
-		pass
-
-	def replace(self):
-		pass
