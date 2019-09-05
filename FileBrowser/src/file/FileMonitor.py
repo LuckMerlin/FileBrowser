@@ -57,7 +57,7 @@ class OnFileModify(pyinotify.ProcessEvent):
 
 class FileMonitor(Database):  
     def startObserver(self,path=None):
-        if path==None:
+        if path==None:.
             print("Can't start file modify observer is NONE",path)
             return None
         elif not os.path.exists(path):
