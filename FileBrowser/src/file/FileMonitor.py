@@ -71,10 +71,13 @@ class FileMonitor(Database):
         notifier=pyinotify.Notifier(manager,modifyHandler) 
         manager.add_watch(path,mask,modifyHandler,True,True)
         print("Started file modify observer ",path)
-        #test
-        super().deleteOnDatabase("/home/LuckMerlin/Desktop/Test")
-        super().insertOnDatabase("/home/LuckMerlin/Desktop/Test")
-        super().moveOnDatabase("/home/LuckMerlin/Desktop/Test","/home")
+        #test 
+        super().deletePathFromDatabase(("/home/LuckMerlin/Desktop/Test",{"path":"/sdfdfa/sdfasd.lpi"}),True)
+
+        print(super().isPathExistOnDatabase("/ddd"))
+        super().insertPathOnDatabase(({"path":"/home/LuckMerlin/Desktop/Test","md5":"ddddd",
+        "size":1231,"mime":"jpg"},))
+        super().movePathOnDatabase("/home/LuckMerlin/Desktop/Test","/home")
         notifier.loop()
 
     def stopObserver(self):

@@ -3,27 +3,58 @@ import pymysql
 
 class MySql:
     sqlConnect=None
-
-    def __init__(self):
-        result=self.connectDatabase('localhost','root','luckmerlin')
-        print(" open database.",result)
+     
+    def selectDatabase(self,dbName):
+        if None==dbName :
+            print("Can't select database",dbName)
+            return False #Interrupt later codes
+        if self.isDatabaseSelected(dbName):#If already selected
+            return False 
+        if (None==self.sqlConnect or (not self.isDatabaseConnected())):
+            print("Can't select database,Host not connect",dbName,self.sqlConnect)
+            return False #Interrupt later codes
+        print("Select database ",dbName)
+        self.sqlConnect.select_db(dbName)
+        return self.isDatabaseSelected(dbName)
     
-    def insertOnDatabase(self,path):
-        if None==path or None==self.sqlConnect:
-            print("Can't insert path into database.",self.sqlConnect,path)
-        database=self.createTable("files","ddd",True,"(id varchar(10),name varchar(10))")
-        print(str(database))
-        #print(str(cursor.execute("show databases")))
-        pass
+    def commit(self):
+        if None!=self.sqlConnect:
+            return self.sqlConnect.commit()
+        return False
 
-    def deleteOnDatabase(OnDatabaseself,path):
-        pass
+    def selectDatabaseTableCursor(self,dbName,tableName):
+        if None==dbName or None==tableName:
+            print("Can't select database table.",dbName,tableName)
+            return None
+        if  (not self.isDatabaseSelected(dbName)) and (not self.selectDatabase(dbName)):
+            print("Can't select database table.Failed select database.",dbName,tableName)
+            return None
+        if None==self.sqlConnect:
+            print("Can't select database table.Invalid connect.",dbName,tableName)
+            return None
+        if not self.isExistTables(dbName,tableName):
+            print("Can't select database table.Table not exist.",dbName,tableName)
+            return None
+        return self.sqlConnect.cursor()
 
-    def moveOnDatabase(self,src,path):
-        pass
-    
+    def isDatabaseSelected(self,dbName):
+        if None==dbName:
+            print("Can't know if database selected,Host not connected.",dbName)
+            return False
+        if not self.isDatabaseConnected():#Must not selected while not connected
+            return False
+        if None==self.sqlConnect:
+            print("Can't not know if selected database,Invalid connect.",dbName,self.sqlConnect)
+            return False
+        cursor=self.sqlConnect.cursor()
+        if None!=cursor:
+            cursor.execute("select database()")
+            result=cursor.fetchall()
+            cursor.close() #Close cursor
+            return self.__isContains(result,dbName) 
+        return False;
 
-    def createDatabase(self,dbName,recreate=False):
+    def createDatabase(self,dbName,recreate=False):   
      if not self.isDatabaseConnected():
          print("Can't create database ",dbName,"Host not connected.")
          return False #Interrupt later codes
@@ -44,22 +75,18 @@ class MySql:
     def isExistDatabase(self,dbName=None):
         if not self.isDatabaseConnected():
             print("Can't know if exise database ",dbName,"Host not connected.")
-        return False #Interrupt later codes
+            return False #Interrupt later codes
         if None==dbName:
             print("Can't find database.dbName=",dbName)
-            return
+            return False #Interrupt later codes
         cursor=self.sqlConnect.cursor() if None!=self.sqlConnect else None
         if None==cursor:
             print("Can't find database ",dbName,".cursor=",cursor)
-            return
+            return False #Interrupt later codes
         result=cursor.execute("show databases")
         databases=cursor.fetchall() if None!=result else None
         cursor.close()#Close cursor
-        for child in databases:#Find target database
-            for name in child:
-                if None!=name and name==dbName:
-                    return True
-        return False
+        return self.__isContains(databases,dbName)
 
     def dropDatabase(self,dbName):
         if not self.isDatabaseConnected():
@@ -67,14 +94,18 @@ class MySql:
             return False #Interrupt later codes   
         if None==dbName:
             print("Can't drop database.dbName=",dbName)
-            return
+            return False #Interrupt later codes 
+        if not self.isExistDatabase(dbName):
+            print("Not need drop database ",dbName)
+            return False #Interrupt later codes  
         cursor=self.sqlConnect.cursor() if None!=self.sqlConnect else None
         if None==cursor:
             print("Can't drop database ",dbName,"cursor=",cursor)
-            return
+            return False #Interrupt later codes 
         print("Dropping database",dbName)
         cursor.execute("drop database "+dbName)
         self.sqlConnect.commit()
+        print("Succeed drop database",dbName)
         cursor.close()#Close cursor
         return not self.isExistDatabase(dbName)
     
@@ -89,11 +120,8 @@ class MySql:
             if None!=cursor:
                 cursor.execute("show tables")
                 tables=cursor.fetchall()
-                cursor.close()   
-                for table in tables:
-                    for child in table:
-                        if None!=child and child==tabName:
-                            return True
+                cursor.close()
+                return self.__isContains(tables,tabName)
         return False
     
     def dropTable(self,dbName,tabName):
@@ -114,10 +142,10 @@ class MySql:
     def createTable(self,dbName,tabName,recreate=False,args=None):
         if not self.isDatabaseConnected():
             print("Can't create table ",tabName,"Host not connected.")
-            return False #Interrupt later codes   
+            return False #Interrupt later codes       
         if None==args or None==dbName or None==tabName:
             print("Can't create database table ",tabName,dbName,args)
-            return #Interrupt later codes
+            return False #Interrupt later codes
         if self.isExistDatabase(dbName) or self.createDatabase(dbName,False):
             exist=self.isExistTables(dbName,tabName) 
             if exist and (not recreate) :
@@ -147,19 +175,16 @@ class MySql:
     def connectDatabase(self,host=None,user=None,passwd=None,port=3306,charset="utf8"):
         if self.isDatabaseConnected():
             print("Not need connect database again which already connected.")
-            return #Interrupt later codes
+            return False #Interrupt later codes
         if (None==host or None==user or None==port or None==charset):
             print("Can't connect database host ",host,port,user,charset)
         print("Connecting database host ",host,port,"as user ",user,charset)
-       # try:
-            # print("HDEEEEEEE",host,user,passwd,charset,port)
-            #pymysql.con
-        self.sqlConnect=pymysql.connect(host,user,passwd,charset,port)
-        return None!=self.sqlConnect
-        #except Exception as e:
-        #    print(e)
-         #   print("Failed to connect database host ",host,port,user)
-        # return False   
+        try:
+            self.sqlConnect=pymysql.connect(host=host,port=port,user=user,passwd=passwd,charset=charset)
+            return None!=self.sqlConnect
+        except Exception as e:
+            print("Failed connect database host ",e)
+        return False
 
     def disconnect(self):
         if None!=self.sqlConnect:
@@ -168,6 +193,16 @@ class MySql:
             self.sqlConnect=None   
             return True
         return False
+
+    def __isContains(self,values,target):
+        if (None!=target and None!=values): 
+            for value in values:
+                for child in value:
+                    if (None!=child and child==target):
+                        return True
+        return False    
+        
+        
 
     def __del__(self):
         if self.isDatabaseConnected():#Try auto disconnect database while __del__
