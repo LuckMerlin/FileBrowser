@@ -14,6 +14,7 @@ import os
 #     print("\n".join(['%s:%s' %  item for item in ddd.__dict__.items()]))
 if __name__=="__main__":
     monitor=FileMonitor.FileMonitor()
-    monitor.startObserver("/home/LuckMerlin/Desktop/Test");  
+    monitor.startObserver("/volume1/Public");  
+#     monitor.startObserver("/home/LuckMerlin/Desktop/Test");  
     # print(FileMeta.FileMeta("/dd/2.jpg").getName(True))
 #     print(FileMeta.FileMeta("./2.jpg").getMd5())

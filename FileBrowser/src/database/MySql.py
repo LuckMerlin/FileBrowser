@@ -55,21 +55,21 @@ class MySql:
         return False;
 
     def createDatabase(self,dbName,recreate=False):   
-     if not self.isDatabaseConnected():
-         print("Can't create database ",dbName,"Host not connected.")
-         return False #Interrupt later codes
-     if None==dbName or None==self.sqlConnect:
+        if not self.isDatabaseConnected():
+            print("Can't create database ",dbName,"Host not connected.")
+            return False #Interrupt later codes
+        if None==dbName or None==self.sqlConnect:
             print("Can't create database.dbName=",dbName,self.sqlConnect)
             return #Interrupt later codes
-     database=self.isExistDatabase(dbName)
-     if database and (not recreate):#If already exist this name database
-        return False #Interrupt later codes
-     if database and (not self.dropDatabase(dbName)):
-        print("Can't create database ",dbName," Failed drop existed.",database)
-        return False #Interrupt later codes
-     print("Creating database "+dbName)   
-     cursor=self.sqlConnect.cursor()
-     return self.isExistDatabase(dbName) if cursor.execute("create database "+dbName) else False
+        database=self.isExistDatabase(dbName)
+        if database and (not recreate):#If already exist this name database
+            return False #Interrupt later codes
+        if database and (not self.dropDatabase(dbName)):
+            print("Can't create database ",dbName," Failed drop existed.",database)
+            return False #Interrupt later codes
+        print("Creating database "+dbName)   
+        cursor=self.sqlConnect.cursor()
+        return self.isExistDatabase(dbName) if cursor.execute("create database "+dbName) else False
     
 
     def isExistDatabase(self,dbName=None):
